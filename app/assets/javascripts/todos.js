@@ -9,32 +9,66 @@ function updateCounters() {
   $("#todo-count").html($(".todo").length - $(".success").length);
 }
 
-function nextTodoId() {
-  return $(".todo").length + 1;
+function createTodo(title) {
+  var newTodo = {
+    title: title,
+    completed: false
+  };
+
+  var requestObj = {
+    type: "POST",
+    url: "/todos.json",
+    data: JSON.stringify({
+      todo: newTodo
+    }),
+    contentType: "application/json",
+    dataType: "json"
+  }
+  $.ajax(requestObj)
+    .done(function() {
+      var checkboxId = data.id;
+
+      var label = $('<label></label>')
+        .attr('for', checkboxId)
+        .html(title);
+
+      var checkbox = $('<input type="checkbox" value="1" />')
+        .attr('id', checkboxId)
+        .bind('change', toggleDone);
+
+      var tableRow = $('<tr class="todo"></td>')
+        .append($('<td>').append(checkbox))
+        .append($('<td>').append(label));
+
+      $("#todoList").append(tableRow);
+
+      updateCounters();
+    })
+    .fail(function(error) {
+      error_message = error.responseJSON.title[0];
+      showError(error_message);
+    });
 }
 
-function createTodo(title) {
-  var checkboxId = "todo-" + nextTodoId();
 
-  var label = $('<label></label>')
-    .attr('for', checkboxId)
-    .html(title);
+function showError(message = "") {
+  var errorHelpBlock = $('<span class="help-block"></span>')
+      .attr('id', 'error_message')
+      .text(message);
 
-  var checkbox = $('<input type="checkbox" value="1" />')
-    .attr('id', checkboxId)
-    .bind('change', toggleDone);
+    $("#formgroup-title")
+      .addClass("has-error")
+      .append(errorHelpBlock);
+}
 
-  var tableRow = $('<tr class="todo"></td>')
-    .append($('<td>').append(checkbox))
-    .append($('<td>').append(label));
-
-  $("#todoList").append( tableRow );
-
-  updateCounters();
+function resetErrors() {
+  $("#error_message").remove();
+  $("#formgroup-title").removeClass("has-error");
 }
 
 function submitTodo(event) {
   event.preventDefault();
+  resetErrors();
   createTodo($("#todo_title").val());
   $("#todo_title").val(null);
   updateCounters();
